@@ -1,0 +1,248 @@
+/* General body styling */
+body {
+    font-family: sans-serif;
+    margin: 0;
+    background-color: #f4f4f4;
+    color: #333; /* Default text color */
+}
+
+/* Container for centering content */
+.container {
+    width: 90%;
+    margin: 0 auto;
+    max-width: 1200px; /* Adjust as needed */
+}
+
+/* Header styling */
+.site-header {
+    background-color: #fff;
+    padding: 10px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.site-logo {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+/* Styling for the "Start a RiseFund" button (which is now a link) */
+.start-fund-button {
+    background-color: #28a745; /* Green color, adjust as needed */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    text-decoration: none; /* Remove underline from link */
+    display: inline-block; /* Treat the link as a block element for padding */
+    text-align: center; /* Center text within the button */
+    transition: background-color 0.3s ease; /* Smooth hover effect */
+}
+
+.start-fund-button:hover {
+    background-color: #218838; /* Darker green on hover */
+}
+
+/* Icon Filter Bar Styling */
+.icon-filter-bar {
+    background-color: #fff;
+    padding: 15px 0;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.icon-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+/* Styling for the link wrapping the icon item (both image and text) */
+.icon-item-link {
+    text-decoration: none; /* Remove default underline */
+    color: inherit; /* Inherit text color */
+    display: flex; /* Use flex to center content inside */
+    justify-content: center;
+    align-items: center;
+    /* Removed fixed size and margin from here */
+}
+
+/* Styling for individual icon items (containers for images) */
+.icon-item {
+    width: 50px; /* Fixed size for the icon box */
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #ccc; /* Optional: Add a border */
+    border-radius: 5px; /* Optional: Add rounded corners */
+    overflow: hidden; /* Hide parts of the image that exceed the container */
+    background-color: #f8f9fa; /* Default background */
+}
+
+/* Styling for the images inside the icon items */
+.icon-item img {
+    display: block; /* Remove extra space below image */
+    max-width: 100%; /* Ensure image fits within the container width */
+    max-height: 100%; /* Ensure image fits within the container height */
+    width: auto; /* Maintain aspect ratio */
+    height: auto; /* Maintain aspect ratio */
+    object-fit: cover; /* Cover the area while maintaining aspect ratio */
+}
+
+/* Styling for text-only icon links */
+.icon-item-link.text-icon {
+    width: 60px; /* Give text links a similar clickable area size */
+    height: 60px;
+    border: 1px solid #ccc; /* Add a border to the link itself */
+    border-radius: 5px; /* Add rounded corners */
+    background-color: #f8f9fa; /* Add a background color */
+    font-size: 0.9em; /* Adjust font size */
+    color: #555; /* Adjust text color */
+    text-align: center; /* Center text */
+    line-height: 1.2; /* Adjust line height if text wraps */
+    padding: 5px; /* Add padding */
+    box-sizing: border-box; /* Include padding and border in size */
+}
+
+
+/* Optional: Add a hover effect to the clickable icon area */
+.icon-item-link:hover .icon-item,
+.icon-item-link.text-icon:hover {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Example hover effect */
+    transition: box-shadow 0.3s ease;
+}
+
+
+/* Main Content Area */
+.content-area {
+    padding-bottom: 20px;
+}
+
+/* Styling for each fundraiser category section */
+.fundraiser-category {
+    margin-bottom: 30px;
+}
+
+.fundraiser-category h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.8em;
+    color: #333;
+}
+
+/* Grid layout for fundraiser items */
+.fundraiser-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive grid */
+    gap: 20px; /* Space between grid items */
+}
+
+/* Styling for individual fundraiser items */
+.fundraiser-item {
+    background-color: #eee; /* Placeholder background color */
+    border-radius: 5px;
+    /* Removed padding here because the link inside will handle it */
+    min-height: 150px; /* Minimum height for placeholder */
+    display: flex; /* Use flex to center content if needed */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #555;
+    overflow: hidden; /* Hide overflow for images */
+    cursor: pointer; /* Indicate that the item is clickable */
+    transition: box-shadow 0.3s ease; /* Smooth hover effect */
+}
+
+.fundraiser-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Example hover effect */
+}
+
+
+/* Styling for the link wrapping the fundraiser item content */
+.fundraiser-item-link {
+    text-decoration: none; /* Remove default underline */
+    color: inherit; /* Inherit text color from parent */
+    display: flex; /* Use flex to structure content within the link */
+    flex-direction: column; /* Stack content vertically */
+    width: 100%; /* Make the link fill the item container */
+    height: 100%; /* Make the link fill the item container */
+    padding: 15px; /* Add padding inside the clickable area */
+    box-sizing: border-box; /* Include padding in the element's total size */
+}
+
+.fundraiser-item-link img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+    margin-bottom: 10px; /* Add space below the image */
+}
+
+.item-details {
+    /* Styling for the text content within the item link */
+    width: 100%; /* Ensure details take full width */
+}
+
+.item-details h3 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.item-details p {
+    margin: 0;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.view-details-button {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 0;
+    background-color: #15421a;
+    color: #fff;
+    text-align: center;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.view-details-button:hover {
+    background-color: #1a521f;
+    color: #fff;
+}
+
+/* Styling for the featured item (example, you might style based on data) */
+.featured-item {
+    background-color: #fff; /* White background for the featured item */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Padding is now handled by .fundraiser-item-link */
+     min-height: auto; /* Adjust height based on content */
+}
+
+/* Basic responsiveness */
+@media (max-width: 768px) {
+    .icon-container {
+        flex-wrap: wrap; /* Allow icons to wrap on smaller screens */
+        justify-content: center; /* Center icons when wrapped */
+    }
+
+    .icon-item-link {
+        margin: 5px; /* Add space between wrapped icon links */
+    }
+
+    .fundraiser-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adjust grid for smaller screens */
+    }
+}

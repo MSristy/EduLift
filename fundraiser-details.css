@@ -1,0 +1,414 @@
+/* General body styling for the details page */
+body {
+    font-family: sans-serif;
+    margin: 0;
+    background-color: #f4f4f4;
+    color: #333; /* Default text color */
+}
+
+/* Container for centering the page content */
+.container {
+    width: 90%;
+    margin: 0 auto;
+    max-width: 1200px; /* Adjust as needed */
+    padding: 20px 0; /* Add vertical padding */
+}
+
+/* Main container for the two-column layout */
+.fundraiser-page-container {
+    display: flex; /* Use flexbox for columns */
+    flex-wrap: wrap; /* Allow columns to wrap on smaller screens */
+    gap: 30px; /* Space between the content and sidebar */
+}
+
+/* Styling for the main content area (left column) */
+.fundraiser-content {
+    flex: 2; /* Allows this section to grow and take more space */
+    min-width: 300px; /* Minimum width before wrapping */
+}
+
+/* Styling for the sidebar (right column) */
+.fundraiser-sidebar {
+    flex: 1; /* Allows this section to grow */
+    min-width: 250px; /* Minimum width before wrapping */
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    height: fit-content; /* Prevent sidebar from stretching to full height */
+}
+
+/* Styling for the main fundraiser image */
+.fundraiser-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Styling for the desktop title (shown on large screens) */
+.fundraiser-title-desktop {
+    font-size: 2em;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+/* Styling for the mobile summary (hidden on large screens) */
+.fundraiser-summary-mobile {
+    display: none; /* Hide on larger screens by default */
+}
+
+/* Styling for goal and donations text */
+.goal-donations {
+    color: #666;
+    font-size: 1em;
+    margin-bottom: 20px;
+}
+
+/* Styling for the progress circles (placeholder styling) */
+.progress-circle, .progress-circle-mobile {
+    width: 100px; /* Size of the circle container */
+    height: 100px;
+    border-radius: 50%;
+    background-color: #e0e0e0; /* Background of the circle */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    margin: 20px auto; /* Center the circle in its container */
+    /* Basic placeholder border to represent progress */
+     border: 5px solid green; /* Represents 41% roughly */
+     border-color: green green #e0e0e0 #e0e0e0; /* Partial border */
+     transform: rotate(45deg); /* Rotate to start at the top */
+}
+
+.progress-circle .progress-inner, .progress-circle-mobile .progress-text {
+    transform: rotate(-45deg); /* Counter-rotate text to be upright */
+}
+
+.progress-text {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+    z-index: 1; /* Ensure text is above potential background fill */
+}
+
+/* Styling for Share and Donate buttons */
+.share-button, .donate-button {
+    display: block; /* Make buttons take full width */
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+    transition: background-color 0.3s ease; /* Smooth hover effect */
+}
+
+.share-button {
+    background-color: #ffc107; /* Yellow */
+    color: #333;
+}
+
+.share-button:hover {
+    background-color: #e0a800; /* Darker Yellow */
+}
+
+.donate-button {
+    background-color: #ff7f00; /* Orange */
+    color: white;
+}
+
+.donate-button:hover {
+    background-color: #e67300; /* Darker Orange */
+}
+
+/* Styling for the button group at the bottom of the content area */
+.button-group-bottom {
+     margin-top: 20px;
+}
+
+/* Styling for Team Fundraiser and Donation Protected sections */
+.team-fundraiser, .donation-protected {
+    display: flex; /* Use flexbox for icon and text alignment */
+    align-items: center;
+    background-color: #e9e9eb; /* Light grey background */
+    padding: 10px 15px;
+    border-left: 5px solid; /* Colored left border */
+    border-radius: 4px;
+    margin-bottom: 15px;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.team-fundraiser {
+    border-left-color: #007bff; /* Blue border for Team */
+}
+
+.donation-protected {
+     border-left-color: #28a745; /* Green border for Donation Protected */
+}
+
+/* Placeholder styling for icons within these sections */
+.team-fundraiser .icon-placeholder,
+.donation-protected .icon-placeholder {
+    width: 20px; /* Size of the icon placeholder */
+    height: 20px;
+    background-color: #ccc; /* Placeholder color for icons */
+    margin-right: 10px;
+    border-radius: 3px;
+}
+
+.team-fundraiser span, .donation-protected span {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.team-fundraiser p {
+    margin: 0;
+    font-size: 0.9em;
+}
+
+.team-fundraiser p span {
+    font-weight: normal; /* Names within the text should not be bold */
+}
+
+/* Styling for the fundraiser description */
+.fundraiser-description {
+    margin-bottom: 20px;
+}
+
+.fundraiser-description p {
+    line-height: 1.6; /* Improve readability */
+    color: #444;
+}
+
+/* Styling for the "Read more" link */
+.read-more {
+    color: #007bff; /* Blue link color */
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.read-more:hover {
+    text-decoration: underline;
+}
+
+/* Styling for Updates and Words of Support headings */
+.fundraiser-updates h2, .fundraiser-support h2 {
+    font-size: 1.3em;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+/* --- Donation Form Styling --- */
+.donation-form-section {
+    background-color: #f9f9f9; /* Light background for the form section */
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px; /* Space below the form */
+}
+
+.donation-form-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
+    color: #333;
+}
+
+.donation-form-section .form-group {
+    margin-bottom: 15px; /* Slightly less space than main form */
+}
+
+.donation-form-section label {
+     display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+    font-size: 0.9em;
+}
+
+.donation-form-section input[type="number"],
+.donation-form-section input[type="text"],
+.donation-form-section textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 1em;
+}
+
+.donation-form-section textarea {
+     resize: vertical;
+}
+
+.submit-donation-button {
+    display: block;
+    width: 100%;
+    background-color: #28a745; /* Green button */
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 15px;
+    transition: background-color 0.3s ease;
+}
+
+.submit-donation-button:hover {
+    background-color: #218838; /* Darker green */
+}
+
+.donation-message {
+    text-align: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.donation-message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.donation-message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+
+/* Sidebar Styles */
+/* Styling for the summary section in the sidebar (hidden on mobile) */
+.sidebar-summary {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.sidebar-summary h2 {
+    font-size: 1.8em;
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+
+/* Styling for the actions section in the sidebar (hidden on mobile) */
+.sidebar-actions {
+     margin-bottom: 30px;
+     padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Styling for the donors list section */
+.sidebar-donors h3 {
+    font-size: 1.2em;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.donor-list {
+    margin-bottom: 15px;
+}
+
+/* Styling for individual donor items */
+.donor-item {
+    display: flex; /* Use flexbox for avatar and info alignment */
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+/* Placeholder styling for donor avatars */
+.donor-avatar {
+    width: 40px;
+    height: 40px;
+    background-color: #ccc; /* Placeholder for avatar */
+    border-radius: 50%; /* Make it round */
+    margin-right: 10px;
+}
+
+.donor-info {
+    display: flex;
+    flex-direction: column; /* Stack name and amount vertically */
+}
+
+.donor-name {
+    font-weight: bold;
+    font-size: 1em;
+}
+
+.donation-amount {
+    font-size: 0.9em;
+    color: #666;
+}
+
+/* Styling for the "See all" donors link */
+.see-all-donors {
+    display: block;
+    text-align: center;
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+.see-all-donors:hover {
+    text-decoration: underline;
+}
+
+/* Responsiveness - Stack columns on smaller screens */
+@media (max-width: 768px) {
+    .fundraiser-page-container {
+        flex-direction: column; /* Stack columns vertically */
+        gap: 20px; /* Reduce gap when stacked */
+    }
+
+    .fundraiser-content, .fundraiser-sidebar {
+        flex: none; /* Remove flex growth */
+        width: 100%; /* Take full width */
+        min-width: auto; /* Remove minimum width constraint */
+    }
+
+    /* Hide desktop-specific elements on mobile */
+    .fundraiser-title-desktop {
+        display: none;
+    }
+
+    .button-group-bottom {
+         display: none;
+     }
+
+     .sidebar-summary {
+         display: none;
+     }
+
+     .sidebar-actions {
+          display: none;
+     }
+
+    /* Show mobile-specific summary on mobile */
+    .fundraiser-summary-mobile {
+        display: block;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+     .fundraiser-summary-mobile h1 {
+         font-size: 1.8em;
+         margin-bottom: 5px;
+     }
+
+    .progress-circle-mobile {
+        margin-top: 15px;
+        margin-bottom: 20px;
+    }
+}

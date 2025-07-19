@@ -1,0 +1,223 @@
+<?php
+session_start();
+if (!isset($_SESSION['lender_id'])) {
+    header("Location: lenderlogin.php");
+    exit();
+}
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header("Location: index.php");
+    exit();
+}
+include('db_connect.php');
+
+// PHP Search: filter by Student ID if provided
+$search_id = isset($_GET['search_id']) ? trim($_GET['search_id']) : '';
+?>
+
+CREATE DATABASE loan;
+
+USE loan;
+
+CREATE TABLE borrower_posts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_name VARCHAR(255) NOT NULL,
+    student_id VARCHAR(50) NOT NULL,
+    loan_amount DECIMAL(10,2) NOT NULL,
+    loan_purpose VARCHAR(255) NOT NULL,
+    loan_description TEXT NOT NULL,
+    financial_wellbeing ENUM('Excellent', 'Very Good', 'Okay', 'Not Good') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    loan_image VARCHAR(255) DEFAULT NULL
+);
+
+
+CREATE TABLE `contact_info` (
+  `id` int(11) NOT NULL,
+  `contact_type` enum('phone','email','facebook') NOT NULL,
+  `contact_value` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `contact_info` (`id`, `contact_type`, `contact_value`, `created_at`) VALUES
+(1, 'phone', '01569108045', '2024-10-03 05:37:45'),
+(2, 'email', 'msristy221447@bscse.uiu.ac.bd', '2024-10-03 05:37:45'),
+(3, 'facebook', 'https://www.facebook.com/mahmudaakter.sristy', '2024-10-03 05:37:45'),
+(4, 'phone', '01745531727', '2024-10-03 05:37:45'),
+(5, 'email', 'mdalmahfuzchowdhury@gmail.com', '2024-10-03 05:37:45'),
+(6, 'facebook', 'https://www.facebook.com/siam.mahfuz.7', '2024-10-03 05:37:45');
+
+CREATE TABLE faq (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    question VARCHAR(255) NOT NULL,
+    answer TEXT NOT NULL
+);
+
+INSERT INTO faq (question, answer) VALUES 
+('What is EdLift?', 'EdLift is a platform that helps UIU students get educational funding through loans and crowdfunding.'),
+('How can I apply for a loan?', 'Simply register on our platform, fill out your loan application, and submit the required documents.'),
+('Who can contribute?', 'Anyone — alumni, individuals, organizations — can donate or lend to students.'),
+('Is there any interest on loans?', 'We offer flexible loan terms with minimal or zero interest depending on the program.');
+
+
+INSERT INTO faq (question, answer) VALUES
+('How can I post a loan request on EdLift?', 'First, create an account on EdLift. After logging in, go to the "Post a Loan Request" section, fill out your loan details like amount, reason, and deadline, and submit. Our team will verify and publish it.'),
+('How do I pay back the loan I received?', 'Once your campaign is funded, you will get a repayment schedule based on your agreed terms. You need to follow the installment dates and pay through our secure payment system on your dashboard.'),
+('How does crowdfunding work at EdLift?', 'Crowdfunding at EdLift allows multiple lenders to contribute smaller amounts to fulfill a borrower\'s full loan request. This makes it easier and faster to get funded!'),
+('Is my data and transaction secure on EdLift?', 'Absolutely! EdLift uses end-to-end encryption and secure payment gateways to ensure your personal and financial information stays protected.'),
+('What is the interest rate for loans?', 'Interest rates depend on your loan profile, the amount you request, and your repayment period. All terms will be clearly shown before you accept any funding.'),
+('Can I cancel my loan request?', 'Yes, you can cancel a loan request before it gets fully funded. After cancellation, no money will be deducted or processed.'),
+('Who can lend money on EdLift?', 'Anyone with a valid bank account and identity verification can become a lender on EdLift. Lenders help students achieve their dreams while earning a return on their contribution.'),
+('What happens if I fail to repay on time?', 'Late payments may incur penalties. We strongly encourage borrowers to communicate with us early if they anticipate any difficulties, so that we can assist you.'),
+('Is there a minimum or maximum amount I can borrow?', 'Yes, typically the minimum borrowing amount is ৳5,000 and the maximum is ৳2,00,000. Exact limits depend on your profile and history with EdLift.'),
+('How long does it take to get funded?', 'It varies. Some students get funded within days, while others may take a few weeks. Making a compelling and clear loan request helps you get funded faster!');
+
+
+
+
+CREATE TABLE lenders_signup (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    student_id VARCHAR(50) NOT NULL UNIQUE,
+    university_email VARCHAR(100) NOT NULL UNIQUE,
+    phone VARCHAR(20),
+    address TEXT,
+    password VARCHAR(255) NOT NULL,
+    profile_pic VARCHAR(255),
+    about TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE lenders_signup ADD COLUMN profile_pic VARCHAR(255) DEFAULT NULL;
+
+CREATE TABLE borrower_signup (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    student_id VARCHAR(20) NOT NULL UNIQUE,
+    university_email VARCHAR(150) NOT NULL UNIQUE,
+    dob DATE NOT NULL,
+    parent_number VARCHAR(20) NOT NULL,
+    city VARCHAR(50) NOT NULL,
+    gender VARCHAR(10) NOT NULL,
+    nid VARCHAR(30) NOT NULL,
+    personal_email VARCHAR(150) NOT NULL,
+    mobile VARCHAR(20) NOT NULL,
+    profile_img VARCHAR(255) NOT NULL,
+    student_id_card_img VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
+//from team member1
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+
+CREATE TABLE `donations` (
+  `id` int(11) NOT NULL,
+  `fundraiser_id` int(11) DEFAULT NULL,
+  `donor_name` varchar(255) DEFAULT NULL,
+  `donor_email` varchar(255) DEFAULT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `comment` text DEFAULT NULL,
+  `donated_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+
+
+INSERT INTO `donations` (`id`, `fundraiser_id`, `donor_name`, `donor_email`, `amount`, `comment`, `donated_at`) VALUES
+(1, 1, 'fgfg', NULL, 4.00, 'vhghfh', '2025-04-19 22:07:03'),
+(2, 1, 'ewewewee', NULL, 3000.00, 'wewewe', '2025-04-19 22:08:37'),
+(3, 2, 'fgfgf', NULL, 4000.00, 'fdfdfdfcv', '2025-04-19 22:10:18'),
+(4, 2, 'hhjhjhgh', NULL, 5000.00, 'ghghgh', '2025-04-19 22:39:03'),
+(5, 1, 'hjhsjas', NULL, 4000.00, 'nbbnbs', '2025-04-19 22:41:59');
+
+
+
+CREATE TABLE `fundraisers` (
+  `id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `goal` decimal(10,2) NOT NULL,
+  `description` text NOT NULL,
+  `category` varchar(100) DEFAULT NULL,
+  `image_path` varchar(255) DEFAULT NULL,
+  `organizer_name` varchar(255) DEFAULT NULL,
+  `organizer_email` varchar(255) DEFAULT NULL,
+  `amount_raised` decimal(10,2) DEFAULT 0.00,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+
+INSERT INTO `fundraisers` (`id`, `title`, `goal`, `description`, `category`, `image_path`, `organizer_name`, `organizer_email`, `amount_raised`, `created_at`) VALUES
+(1, 'vcvcv', 3444.00, 'fgffhf', 'medical', 'uploads/68041e77cfbdf.jpg', 'ghghg', 'zawadulamanhredoy11189@gmail.com', 7004.00, '2025-04-19 22:06:47'),
+(2, 'ytyt', 4999.00, 'ghgjgj', 'education', 'uploads/68041f2d96f33.jpg', 'ffgf', 'zawadulamanhredoy11189@gmail.com', 9000.00, '2025-04-19 22:09:49');
+
+
+ALTER TABLE `donations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fundraiser_id` (`fundraiser_id`);
+
+
+ALTER TABLE `fundraisers`
+  ADD PRIMARY KEY (`id`);
+
+
+ALTER TABLE `donations`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+
+ALTER TABLE `fundraisers`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+
+ALTER TABLE `donations`
+  ADD CONSTRAINT `donations_ibfk_1` FOREIGN KEY (`fundraiser_id`) REFERENCES `fundraisers` (`id`) ON DELETE CASCADE;
+COMMIT;
+
+
+
+CREATE TABLE loan_offers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lender_name VARCHAR(100) NOT NULL,
+    interest_rate DECIMAL(5,2) NOT NULL,
+    payable_system VARCHAR(50) NOT NULL,
+    loan_duration VARCHAR(50) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE accepted_loans (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lender_offer_id INT,
+    borrower_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
+
+CREATE TABLE lender_lend (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lender_id INT NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
+    student_id VARCHAR(50) NOT NULL,
+    versity_email VARCHAR(100) NOT NULL,
+    mobile VARCHAR(20) NOT NULL,
+    interest_rate DECIMAL(5,2) NOT NULL,
+    duration ENUM('monthly', 'yearly', 'end') NOT NULL,
+    description TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (lender_id) REFERENCES lenders_signup(id),
+    borrower_id INT DEFAULT NULL
+);
+
+ALTER TABLE lender_lend
+ADD COLUMN borrower_id INT DEFAULT NULL AFTER lender_id;
+
+DESCRIBE lenders_signup;
