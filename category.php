@@ -278,8 +278,8 @@ $conn->close();
                 <input type="text" id="campaign-title" name="campaign-title" required>
             </div>
             <div class="form-group">
-                <label for="goal-amount">Goal Amount ($)</label>
-                <input type="number" id="goal-amount" name="goal-amount" required min="0" step="0.01">
+                <label for="goal-amount">Goal Amount (৳)</label>
+                <input type="number" id="goal-amount" name="goal-amount" required min="0" step="0.01" placeholder="Enter amount in Taka">
             </div>
             <div class="form-group">
                 <label for="description">Description</label>
@@ -327,10 +327,13 @@ $conn->close();
                                 <?php endif; ?>
                                 <div class="item-details">
                                     <h3><?php echo htmlspecialchars($fundraiser['title']); ?></h3>
-                                    <p>Raised: $<?php echo number_format($fundraiser['amount_raised'], 2); ?></p>
-                                    <p>Goal: $<?php echo number_format($fundraiser['goal'], 2); ?></p>
+                                    <p>Raised: ৳<?php echo number_format($fundraiser['amount_raised'], 2); ?></p>
+                                    <p>Goal: ৳<?php echo number_format($fundraiser['goal'], 2); ?></p>
                                 </div>
                             </a>
+                            <div style="text-align:center;margin-top:0;margin-bottom:10px;">
+                                <a href="fundraiser-details.php?id=<?php echo $fundraiser['id']; ?>" class="view-details-btn" style="display:inline-block;padding:8px 22px;background:linear-gradient(90deg,#15421a 0%,#1a521f 100%);color:#fff;border-radius:8px;font-weight:600;text-decoration:none;transition:background 0.2s;">View Details</a>
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 <?php elseif (!empty($selected_category)): ?>

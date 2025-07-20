@@ -18,7 +18,7 @@
             top: 0;
             width: 100%;
             z-index: 1000; 
-            background: linear-gradient(to right,rgb(238, 222, 191),rgb(243, 183, 155)); 
+            background: linear-gradient(to right, #e7cba0 0%, #b97a3a 100%); /* light-darkish official gradient */
             padding: 4px 0;
             display: flex;
             align-items: center;
@@ -39,7 +39,8 @@
             gap: 10px;
             font-size: 22px;
             font-weight: bold;
-            color: #b96c2a;
+            color: #7a3e13;
+            text-shadow: 0 1px 2px #e7cba0;
         }
         .logo img {
             height: 46px;
@@ -56,7 +57,10 @@
             display: inline;
         }
         .nav-links li :hover {
-            color: white;
+            color: #fff;
+        .nav-links a:hover {
+            color: #fff;
+        }
         }
         .nav-links a {
             text-decoration: none;
@@ -69,7 +73,14 @@
             transition: color 0.2s;
             padding-top: 2px;
             padding-bottom: 2px;
+            position: relative;
         }
+        .nav-links a.active,
+        .nav-links a:active {
+            color: #fff !important;
+            background: none;
+        }
+        /* Removed underline for active nav link */
         .nav-links a i {
             font-size: 18px;
         }
@@ -95,11 +106,36 @@
         .auth-btn:hover {
             background: #a0521d;
         }
+        .auth-buttons a.auth-btn:first-child {
+            background: none !important;
+            color: #fff !important;
+            border: none;
+            box-shadow: none;
+            padding: 4px 0;
+            border-radius: 0;
+        }
+        .auth-buttons a.auth-btn:first-child:hover {
+            background: none !important;
+            color: #ff9800 !important;
+        }
         @media (max-width: 900px) {
             .navbar-content { flex-direction: column; gap: 10px; }
             .nav-links { gap: 20px; }
         }
     </style>
+
+    <script>
+    // Highlight active nav link with underline
+    document.addEventListener('DOMContentLoaded', function() {
+        var links = document.querySelectorAll('.nav-links a');
+        var current = window.location.pathname.split('/').pop();
+        links.forEach(function(link) {
+            if(link.getAttribute('href') === current) {
+                link.classList.add('active');
+            }
+        });
+    });
+    </script>
 </head>
 <body>
 

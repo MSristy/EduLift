@@ -15,70 +15,58 @@ $donation_message = ''; // Message to display to the user after a donation attem
 // Check if the request method is POST and if the 'donate' hidden input is set
 // Also ensure a valid fundraiser_id is present
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['donate']) && $fundraiser_id > 0) {
-    // Get donation form data and sanitize input
-    $donor_name = htmlspecialchars($_POST['donor_name']);
-    // Filter donation amount to ensure it's a valid floating-point number
-    $donation_amount = filter_var($_POST['donation_amount'], FILTER_VALIDATE_FLOAT);
-    $comment = htmlspecialchars($_POST['comment']);
-
-    // Basic validation for the donation amount
-    if ($donation_amount === false || $donation_amount <= 0) {
-        // Set an error message if the amount is invalid
-        $donation_message = "<span class='error'>Please enter a valid donation amount.</span>";
+    // Check if fundraiser is already completed
+    $sql_check = "SELECT amount_raised, goal FROM fundraisers WHERE id = ?";
+    $stmt_check = $conn->prepare($sql_check);
+    $stmt_check->bind_param("i", $fundraiser_id);
+    $stmt_check->execute();
+    $result_check = $stmt_check->get_result();
+    $row_check = $result_check->fetch_assoc();
+    $stmt_check->close();
+    $current_raised = $row_check['amount_raised'];
+    $goal = $row_check['goal'];
+    if ($goal > 0 && $current_raised >= $goal) {
+        $donation_message = "<span class='error'>This fundraiser is already completed. No more donations are accepted.</span>";
     } else {
-        // Start a database transaction
-        // This ensures that both the donation insertion and fundraiser update succeed or fail together
-        $conn->begin_transaction();
-
-        try {
-            // Prepare an SQL statement to insert the new donation
-            $sql_insert_donation = "INSERT INTO donations (fundraiser_id, donor_name, amount, comment) VALUES (?, ?, ?, ?)";
-            // Prepare the statement
-            $stmt_insert_donation = $conn->prepare($sql_insert_donation);
-            // Bind parameters (i=integer, s=string, d=double/decimal)
-            $stmt_insert_donation->bind_param("isds", $fundraiser_id, $donor_name, $donation_amount, $comment);
-
-            // Execute the insert statement
-            if (!$stmt_insert_donation->execute()) {
-                // If insertion fails, throw an exception to trigger rollback
-                throw new Exception("Error inserting donation: " . $stmt_insert_donation->error);
+        $donor_name = htmlspecialchars($_POST['donor_name']);
+        $donation_amount = filter_var($_POST['donation_amount'], FILTER_VALIDATE_FLOAT);
+        $comment = htmlspecialchars($_POST['comment']);
+        if ($donation_amount === false || $donation_amount <= 0) {
+            $donation_message = "<span class='error'>Please enter a valid donation amount.</span>";
+        } else {
+            // Cap donation so it doesn't exceed the goal
+            $donation_to_add = $donation_amount;
+            if ($goal > 0 && ($current_raised + $donation_amount) > $goal) {
+                $donation_to_add = $goal - $current_raised;
             }
-            // Close the statement
-            $stmt_insert_donation->close();
-
-            // Prepare an SQL statement to update the amount_raised for the fundraiser
-            $sql_update_fundraiser = "UPDATE fundraisers SET amount_raised = amount_raised + ? WHERE id = ?";
-            // Prepare the statement
-            $stmt_update_fundraiser = $conn->prepare($sql_update_fundraiser);
-            // Bind parameters (d=double/decimal, i=integer)
-            $stmt_update_fundraiser->bind_param("di", $donation_amount, $fundraiser_id);
-
-            // Execute the update statement
-            if (!$stmt_update_fundraiser->execute()) {
-                 // If update fails, throw an exception to trigger rollback
-                 throw new Exception("Error updating fundraiser amount: " . $stmt_update_fundraiser->error);
+            if ($donation_to_add <= 0) {
+                $donation_message = "<span class='error'>This fundraiser is already completed. No more donations are accepted.</span>";
+            } else {
+                $conn->begin_transaction();
+                try {
+                    $sql_insert_donation = "INSERT INTO donations (fundraiser_id, donor_name, amount, comment) VALUES (?, ?, ?, ?)";
+                    $stmt_insert_donation = $conn->prepare($sql_insert_donation);
+                    $stmt_insert_donation->bind_param("isds", $fundraiser_id, $donor_name, $donation_to_add, $comment);
+                    if (!$stmt_insert_donation->execute()) {
+                        throw new Exception("Error inserting donation: " . $stmt_insert_donation->error);
+                    }
+                    $stmt_insert_donation->close();
+                    $sql_update_fundraiser = "UPDATE fundraisers SET amount_raised = amount_raised + ? WHERE id = ?";
+                    $stmt_update_fundraiser = $conn->prepare($sql_update_fundraiser);
+                    $stmt_update_fundraiser->bind_param("di", $donation_to_add, $fundraiser_id);
+                    if (!$stmt_update_fundraiser->execute()) {
+                        throw new Exception("Error updating fundraiser amount: " . $stmt_update_fundraiser->error);
+                    }
+                    $stmt_update_fundraiser->close();
+                    $conn->commit();
+                    $donation_message = "<span class='success'>Thank you for your donation!</span>";
+                    header("Location: fundraiser-details.php?id=" . $fundraiser_id);
+                    exit();
+                } catch (Exception $e) {
+                    $conn->rollback();
+                    $donation_message = "<span class='error'>Donation failed: " . $e->getMessage() . "</span>";
+                }
             }
-            // Close the statement
-            $stmt_update_fundraiser->close();
-
-            // If both operations were successful, commit the transaction
-            $conn->commit();
-
-            // Set a success message
-            $donation_message = "<span class='success'>Thank you for your donation!</span>";
-
-            // Redirect to the same page after successful donation
-            // This prevents form resubmission if the user refreshes the page
-            header("Location: fundraiser-details.php?id=" . $fundraiser_id);
-            exit(); // Stop script execution after redirect
-
-        } catch (Exception $e) {
-            // If any error occurred during the transaction, rollback the changes
-            $conn->rollback();
-            // Set an error message including the exception message
-            $donation_message = "<span class='error'>Donation failed: " . $e->getMessage() . "</span>";
-             // In a real application, you would also log this error for debugging
-             // error_log($e->getMessage());
         }
     }
 }
@@ -202,17 +190,24 @@ function time_elapsed_string($datetime, $full = false) {
                 </div>
 
                 <div class="fundraiser-summary-mobile">
-                     <h1><?php echo number_format($fundraiser['amount_raised'], 2); ?> BDT raised</h1>
-                     <p class="goal-donations"><?php echo number_format($fundraiser['goal'], 0); ?>K goal • <?php echo count($donations); ?> donations</p>
+                     <h1>৳<?php echo number_format($fundraiser['amount_raised'], 2); ?> raised</h1>
+                     <p class="goal-donations">৳<?php echo number_format($fundraiser['goal'], 0); ?>K goal • <?php echo count($donations); ?> donations</p>
                      <div class="progress-circle-mobile">
                          <div class="progress-text"><?php echo $percentage_raised; ?>%</div>
-                         </div>
+                     </div>
                      <button class="share-button" id="share-button-mobile">Share</button>
-                     <button class="donate-button" id="donate-now-mobile">Donate now</button>
+                     <?php if ($percentage_raised >= 100): ?>
+                         <button class="donate-button" id="donate-now-mobile" disabled style="background:#aaa;cursor:not-allowed;">Fund Completed</button>
+                     <?php else: ?>
+                         <button class="donate-button" id="donate-now-mobile">Donate now</button>
+                     <?php endif; ?>
                 </div>
 
                 <div class="fundraiser-details">
-                    <h1 class="fundraiser-title-desktop"><?php echo number_format($fundraiser['amount_raised'], 2); ?> BDT raised</h1>
+                    <h1 class="fundraiser-title-desktop">৳<?php echo number_format($fundraiser['amount_raised'], 2); ?> raised</h1>
+                    <?php if ($percentage_raised >= 100): ?>
+                        <div style="margin: 16px 0; padding: 10px 18px; background: #e0e0e0; color: #b71c1c; border-radius: 8px; font-weight: bold; font-size: 1.1em; text-align: center;">Fund Completed</div>
+                    <?php endif; ?>
 
                     <div class="team-fundraiser">
                         <div class="icon-placeholder"></div> <span>Team fundraiser</span>
@@ -229,27 +224,32 @@ function time_elapsed_string($datetime, $full = false) {
                         </p>
                         </div>
 
+
                     <div class="fundraiser-updates">
-                        <h2>Update (0)</h2>
-                        <p>No updates available yet.</p>
+                        <h2>Update (<span id="update-count">0</span>)</h2>
+                        <div id="updates-list"><p>No updates available yet.</p></div>
                     </div>
 
                     <div class="fundraiser-support">
-                        <h2>Words of support (0)</h2>
-                        <p>No words of support yet.</p>
+                        <h2>Words of support (<span id="support-count">0</span>)</h2>
+                        <div id="support-list"><p>No words of support yet.</p></div>
                     </div>
 
                     <div class="button-group-bottom">
                          <button class="share-button" id="share-button-bottom">Share</button>
-                         <button class="donate-button" id="donate-now-bottom">Donate now</button>
+                         <?php if ($percentage_raised >= 100): ?>
+                             <button class="donate-button" id="donate-now-bottom" disabled style="background:#aaa;cursor:not-allowed;">Fund Completed</button>
+                         <?php else: ?>
+                             <button class="donate-button" id="donate-now-bottom">Donate now</button>
+                         <?php endif; ?>
                      </div>
                 </div>
             </div>
 
             <aside class="fundraiser-sidebar">
                 <div class="sidebar-summary">
-                    <h2><?php echo number_format($fundraiser['amount_raised'], 2); ?> BDT raised</h2>
-                    <p class="goal-donations"><?php echo number_format($fundraiser['goal'], 0); ?>K goal • <?php echo count($donations); ?> donations</p>
+                    <h2>৳<?php echo number_format($fundraiser['amount_raised'], 2); ?> raised</h2>
+                    <p class="goal-donations">৳<?php echo number_format($fundraiser['goal'], 0); ?>K goal • <?php echo count($donations); ?> donations</p>
                     <div class="progress-circle">
                         <div class="progress-inner">
                             <div class="progress-text"><?php echo $percentage_raised; ?>%</div>
@@ -259,7 +259,11 @@ function time_elapsed_string($datetime, $full = false) {
 
                 <div class="sidebar-actions">
                     <button class="share-button" id="share-button-sidebar">Share</button>
-                    <button class="donate-button" id="donate-now-sidebar">Donate now</button>
+                    <?php if ($percentage_raised >= 100): ?>
+                        <button class="donate-button" id="donate-now-sidebar" disabled style="background:#aaa;cursor:not-allowed;">Fund Completed</button>
+                    <?php else: ?>
+                        <button class="donate-button" id="donate-now-sidebar">Donate now</button>
+                    <?php endif; ?>
                 </div>
 
                 <div class="donation-form-section">
@@ -271,8 +275,8 @@ function time_elapsed_string($datetime, $full = false) {
                     <?php endif; ?>
                     <form action="fundraiser-details.php?id=<?php echo $fundraiser['id']; ?>" method="post">
                         <div class="form-group">
-                            <label for="donation-amount">Amount ($)</label>
-                            <input type="number" id="donation-amount" name="donation_amount" step="0.01" min="1" required>
+                            <label for="donation-amount">Amount (৳)</label>
+                            <input type="number" id="donation-amount" name="donation_amount" step="0.01" min="1" required placeholder="Enter amount in Taka">
                         </div>
                          <div class="form-group">
                             <label for="donor-name">Your Name (Optional)</label>
@@ -288,13 +292,18 @@ function time_elapsed_string($datetime, $full = false) {
                 </div>
                  <div class="sidebar-donors">
                     <h3><?php echo count($donations); ?> people just donated</h3>
-                    <div class="donor-list">
+                    <div class="donor-list" id="donor-list">
                         <?php if (count($donations) > 0): ?>
                             <?php foreach ($donations as $donation): ?>
-                                <div class="donor-item">
+                                <div class="donor-item donor-clickable" data-donor='<?php echo json_encode([
+                                    "name" => $donation['donor_name'] ?: 'Anonymous',
+                                    "amount" => number_format($donation['amount'], 0),
+                                    "comment" => $donation['comment'],
+                                    "donated_at" => $donation['donated_at'],
+                                ]); ?>'>
                                     <div class="donor-avatar"></div> <div class="donor-info">
                                         <span class="donor-name"><?php echo htmlspecialchars($donation['donor_name'] ?: 'Anonymous'); ?></span>
-                                        <span class="donation-amount"><?php echo number_format($donation['amount'], 0); ?> • <?php echo time_elapsed_string($donation['donated_at']); ?></span>
+                                        <span class="donation-amount">৳<?php echo number_format($donation['amount'], 0); ?> • <span class="donation-time" data-time="<?php echo htmlspecialchars($donation['donated_at']); ?>"><?php echo time_elapsed_string($donation['donated_at']); ?></span></span>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -302,7 +311,44 @@ function time_elapsed_string($datetime, $full = false) {
                             <p>No donations yet.</p>
                         <?php endif; ?>
                     </div>
-                    <a href="#" class="see-all-donors">See all</a>
+                    <a href="#" class="see-all-donors" id="see-all-donors">See all</a>
+                </div>
+
+                <!-- Modal for all donors -->
+                <div id="all-donors-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center;">
+                  <div style="background:linear-gradient(135deg,#fff8f2 60%,#ffe3c2 100%);padding:0;border-radius:32px;max-width:440px;width:94vw;box-shadow:0 16px 64px 0 rgba(255,179,102,0.22),0 2px 12px #ffb36633;position:relative;overflow-y:auto;display:flex;flex-direction:column;align-items:center;">
+                    <button id="close-donors-modal" style="position:absolute;top:18px;right:22px;font-size:2em;background:none;border:none;cursor:pointer;color:#e67c1a;transition:color 0.2s;z-index:2;">&times;</button>
+                    <h2 style="margin-top:36px;margin-bottom:18px;color:#e67c1a;text-align:center;font-size:1.5em;font-weight:700;letter-spacing:0.01em;text-shadow:0 1px 0 #fff,0 2px 8px #ffb36622;">All Donors</h2>
+                    <div id="all-donors-list" style="width:100%;padding:0 24px 24px 24px;display:flex;flex-direction:column;gap:14px;">
+                      <?php if (count($donations) > 0): ?>
+                        <?php foreach ($donations as $donation): ?>
+                          <div style="background:linear-gradient(135deg,#fff 60%,#fff3e0 100%);border-radius:16px;box-shadow:0 2px 8px #ffb36622;padding:16px 18px;display:flex;align-items:center;gap:18px;min-height:90px;color:#111;">
+                            <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#fff,#ffe3c2 80%);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px #ffb36633;border:2.5px solid #fff;flex-shrink:0;color:#e67c1a;">
+                              <span style="font-size:1.7em;font-weight:bold;">
+                                <?php echo ($donation['donor_name'] && $donation['donor_name'] !== 'Anonymous') ? strtoupper(substr($donation['donor_name'],0,1)) : '👤'; ?>
+                              </span>
+                            </div>
+                            <div style="flex:1;display:flex;flex-direction:column;gap:4px;color:#111;">
+                              <span style="font-size:1.13em;font-weight:700;letter-spacing:0.01em;">
+                                <?php echo htmlspecialchars($donation['donor_name'] ?: 'Anonymous'); ?>
+                              </span>
+                              <span style="font-size:1.05em;font-weight:600;color:#ff9800;background:#fff3e0;padding:2px 10px;border-radius:10px;box-shadow:0 1px 4px #ffb36622;display:inline-block;width:max-content;">
+                                ৳<?php echo number_format($donation['amount'], 0); ?>
+                              </span>
+                              <span style="color:#444;font-size:0.97em;">
+                                <?php echo time_elapsed_string($donation['donated_at']); ?>
+                              </span>
+                            </div>
+                            <div style="font-size:1.03em;color:#b85c00;text-align:left;background:linear-gradient(90deg,#fff3e0 60%,#ffe3c2 100%);padding:8px 12px;border-radius:8px;min-width:80px;max-width:180px;box-shadow:0 1px 6px #ffb36622;font-style:italic;word-break:break-word;">
+                              <?php echo !empty($donation['comment']) ? '"' . htmlspecialchars($donation['comment']) . '"' : 'No comment'; ?>
+                            </div>
+                          </div>
+                        <?php endforeach; ?>
+                      <?php else: ?>
+                        <p>No donations yet.</p>
+                      <?php endif; ?>
+                    </div>
+                  </div>
                 </div>
             </aside>
 
@@ -313,6 +359,25 @@ function time_elapsed_string($datetime, $full = false) {
                 <p><a href="index.php">Go back to the home page</a></p>
             </div>
         <?php endif; ?>
+    </div>
+
+    <!-- Donor Detail Popup -->
+
+    <div id="donor-detail-popup" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.32);z-index:10000;align-items:center;justify-content:center;backdrop-filter:blur(3px);">
+      <div style="background:linear-gradient(135deg,#fff8f2 60%,#ffe3c2 100%);padding:0;border-radius:32px;max-width:440px;width:94vw;box-shadow:0 16px 64px 0 rgba(255,179,102,0.22),0 2px 12px #ffb36633;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;color:#111;">
+        <div style="width:100%;height:120px;background:linear-gradient(120deg,#ffb366 60%,#ffe3c2 100%);display:flex;align-items:center;justify-content:center;position:relative;color:#fff;">
+          <div style="width:92px;height:92px;border-radius:50%;background:linear-gradient(135deg,#fff,#ffe3c2 80%);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 16px #ffb36655;position:absolute;bottom:-46px;left:50%;transform:translateX(-50%);border:5px solid #fff;color:#e67c1a;">
+            <span style="font-size:3em;font-weight:bold;" id="popup-donor-avatar">👤</span>
+          </div>
+          <button id="close-donor-detail" style="position:absolute;top:18px;right:22px;font-size:2em;background:none;border:none;cursor:pointer;color:#fff;transition:color 0.2s;z-index:2;">&times;</button>
+        </div>
+        <div style="padding:68px 36px 36px 36px;width:100%;display:flex;flex-direction:column;align-items:center;color:#111;">
+          <h3 id="popup-donor-name" style="margin:0 0 10px 0;font-size:1.45em;font-weight:700;text-align:center;letter-spacing:0.01em;text-shadow:0 1px 0 #fff,0 2px 8px #ffb36622;">Donor Name</h3>
+          <div id="popup-donor-amount" style="font-weight:700;margin-bottom:10px;font-size:1.18em;color:#ff9800;background:#fff3e0;padding:6px 18px;border-radius:16px;box-shadow:0 1px 6px #ffb36622;">৳0</div>
+          <div id="popup-donor-time" style="color:#444;font-size:1em;margin-bottom:16px;">Time ago</div>
+          <div id="popup-donor-comment" style="font-size:1.13em;color:#b85c00;margin-bottom:8px;text-align:center;background:linear-gradient(90deg,#fff3e0 60%,#ffe3c2 100%);padding:16px 18px;border-radius:14px;min-width:120px;max-width:100%;box-shadow:0 1px 8px #ffb36633;font-style:italic;">No comment</div>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -355,6 +420,126 @@ function time_elapsed_string($datetime, $full = false) {
                     });
                 });
             });
+
+            // Real-time update for donation time-ago
+            function updateTimeAgo() {
+                const timeElements = document.querySelectorAll('.donation-time');
+                timeElements.forEach(function(el) {
+                    const donatedAt = el.getAttribute('data-time');
+                    if (donatedAt) {
+                        el.textContent = timeAgoString(new Date(donatedAt));
+                    }
+                });
+            }
+            function timeAgoString(date) {
+                const now = new Date();
+                const seconds = Math.floor((now - date) / 1000);
+                let interval = Math.floor(seconds / 31536000);
+                if (interval >= 1) return interval + ' year' + (interval > 1 ? 's' : '') + ' ago';
+                interval = Math.floor(seconds / 2592000);
+                if (interval >= 1) return interval + ' month' + (interval > 1 ? 's' : '') + ' ago';
+                interval = Math.floor(seconds / 604800);
+                if (interval >= 1) return interval + ' week' + (interval > 1 ? 's' : '') + ' ago';
+                interval = Math.floor(seconds / 86400);
+                if (interval >= 1) return interval + ' day' + (interval > 1 ? 's' : '') + ' ago';
+                interval = Math.floor(seconds / 3600);
+                if (interval >= 1) return interval + ' hour' + (interval > 1 ? 's' : '') + ' ago';
+                interval = Math.floor(seconds / 60);
+                if (interval >= 1) return interval + ' minute' + (interval > 1 ? 's' : '') + ' ago';
+                return 'just now';
+            }
+            setInterval(updateTimeAgo, 15000); // update every 15 seconds
+            updateTimeAgo();
+
+            // See all donors modal
+            const seeAllBtn = document.getElementById('see-all-donors');
+            const modal = document.getElementById('all-donors-modal');
+            const closeModal = document.getElementById('close-donors-modal');
+            if (seeAllBtn && modal && closeModal) {
+                seeAllBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    modal.style.display = 'flex';
+                });
+                closeModal.addEventListener('click', function() {
+                    modal.style.display = 'none';
+                });
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) modal.style.display = 'none';
+                });
+            }
+
+            // Donor profile popup
+            function showDonorPopup(donor) {
+                document.getElementById('popup-donor-name').textContent = donor.name || 'Anonymous';
+                document.getElementById('popup-donor-amount').textContent = '৳' + donor.amount;
+                document.getElementById('popup-donor-time').textContent = timeAgoString(new Date(donor.donated_at));
+                // Avatar: use first letter of name or default icon
+                var avatar = document.getElementById('popup-donor-avatar');
+                if (donor.name && donor.name.trim() !== '' && donor.name !== 'Anonymous') {
+                    avatar.textContent = donor.name.trim().charAt(0).toUpperCase();
+                } else {
+                    avatar.textContent = '👤';
+                }
+                var commentDiv = document.getElementById('popup-donor-comment');
+                if (donor.comment && donor.comment.trim() !== '') {
+                    commentDiv.style.display = 'block';
+                    commentDiv.textContent = '"' + donor.comment + '"';
+                } else {
+                    commentDiv.style.display = 'block';
+                    commentDiv.textContent = 'No comment';
+                }
+                document.getElementById('donor-detail-popup').style.display = 'flex';
+            }
+            // --- Real-time updates for Updates and Words of Support (Demo/Static) ---
+            function fetchUpdatesAndSupport() {
+                // Simulate AJAX fetch. Replace with real AJAX in production.
+                // Example static data:
+                const updates = [
+                  { text: "We have reached 50% of our goal! Thank you!", time: "2025-07-19 15:00:00" },
+                  { text: "Campaign started!", time: "2025-07-18 10:00:00" }
+                ];
+                const support = [
+                  { name: "Ayesha", message: "Praying for your success!", time: "2025-07-20 10:00:00" },
+                  { name: "Anonymous", message: "Best wishes!", time: "2025-07-19 18:00:00" }
+                ];
+                // Render updates
+                const updatesList = document.getElementById('updates-list');
+                const updateCount = document.getElementById('update-count');
+                if (updates.length > 0) {
+                  updatesList.innerHTML = updates.map(u => `<div style="background:#fbeee6;padding:10px 14px;margin-bottom:8px;border-radius:8px;font-size:1em;color:#444;"><span style='font-weight:500;'>${u.text}</span><br><span style='color:#888;font-size:0.93em;'>${timeAgoString(new Date(u.time))}</span></div>`).join('');
+                } else {
+                  updatesList.innerHTML = '<p>No updates available yet.</p>';
+                }
+                updateCount.textContent = updates.length;
+                // Render support
+                const supportList = document.getElementById('support-list');
+                const supportCount = document.getElementById('support-count');
+                if (support.length > 0) {
+                  supportList.innerHTML = support.map(s => `<div style="background:#fff3e0;padding:10px 14px;margin-bottom:8px;border-radius:8px;font-size:1em;color:#444;"><span style='font-weight:500;color:#b71c1c;'>${s.name}</span>: <span>${s.message}</span><br><span style='color:#888;font-size:0.93em;'>${timeAgoString(new Date(s.time))}</span></div>`).join('');
+                } else {
+                  supportList.innerHTML = '<p>No words of support yet.</p>';
+                }
+                supportCount.textContent = support.length;
+            }
+            setInterval(fetchUpdatesAndSupport, 15000); // update every 15 seconds
+            fetchUpdatesAndSupport();
+            function closeDonorPopup() {
+                document.getElementById('donor-detail-popup').style.display = 'none';
+            }
+            document.getElementById('close-donor-detail').addEventListener('click', closeDonorPopup);
+            document.getElementById('donor-detail-popup').addEventListener('click', function(e) {
+                if (e.target === this) closeDonorPopup();
+            });
+            function attachDonorClickHandlers() {
+                document.querySelectorAll('.donor-clickable').forEach(function(el) {
+                    el.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const donor = JSON.parse(this.getAttribute('data-donor'));
+                        showDonorPopup(donor);
+                    });
+                });
+            }
+            attachDonorClickHandlers();
         });
         // --- End Share Button Functionality ---
 
@@ -368,28 +553,16 @@ function time_elapsed_string($datetime, $full = false) {
 
              // Check if the donation form section exists on the page
              if (donationFormSection) {
-                 // Add a click event listener to each donate button
+                 // Add click event listener to each donate button
                  donateButtons.forEach(button => {
-                     button.addEventListener('click', function(event) {
-                         event.preventDefault(); // Prevent the default button action (e.g., form submission if it were a submit button)
-
-                         // Use scrollIntoView to smoothly scroll the page to the donation form section
-                         donationFormSection.scrollIntoView({
-                             behavior: 'smooth' // Use smooth scrolling
-                         });
-
-                         // Optional: Focus on the donation amount input field after scrolling
-                         const amountInput = document.getElementById('donation-amount');
-                         if (amountInput) {
-                             amountInput.focus(); // Place the cursor in the amount input
-                         }
+                     button.addEventListener('click', function() {
+                         // Scroll smoothly to the donation form section
+                         donationFormSection.scrollIntoView({ behavior: 'smooth' });
                      });
                  });
              }
          });
         // --- End Donate Now Button Functionality ---
-
     </script>
-    <?php include('templates/footer.php'); ?>
 </body>
 </html>

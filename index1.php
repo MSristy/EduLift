@@ -263,8 +263,8 @@ $conn->close();
                 <input type="text" id="campaign-title" name="campaign-title" required>
             </div>
             <div class="form-group">
-                <label for="goal-amount">Goal Amount ($)</label>
-                <input type="number" id="goal-amount" name="goal-amount" required min="0" step="0.01">
+                <label for="goal-amount">Goal Amount (৳)</label>
+                <input type="number" id="goal-amount" name="goal-amount" required min="0" step="0.01" placeholder="Enter amount in Taka">
             </div>
             <div class="form-group">
                 <label for="description">Description</label>
@@ -332,8 +332,8 @@ $conn->close();
                                 <?php endif; ?>
                                 <div class="item-details">
                                     <h3><?php echo htmlspecialchars($fundraiser['title']); ?></h3>
-                                    <p>Raised: $<?php echo number_format($fundraiser['amount_raised'], 2); ?></p>
-                                    <p>Goal: $<?php echo number_format($fundraiser['goal'], 2); ?></p>
+                                    <p>Raised: ৳<?php echo number_format($fundraiser['amount_raised'], 2); ?></p>
+                                    <p>Goal: ৳<?php echo number_format($fundraiser['goal'], 2); ?></p>
                                 </div>
                                 <a href="fundraiser-details.php?id=<?php echo $fundraiser['id']; ?>" class="view-details-button">View Details</a>
                             </a>

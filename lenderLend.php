@@ -49,8 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = trim($_POST['description']);
     $borrower_id_to_save = isset($_GET['borrower_id']) ? intval($_GET['borrower_id']) : null;
 
-    // Basic validation
-    if ($full_name && $student_id && $versity_email && $mobile && $interest_rate && $duration && $description) {
+    // Basic validation (allow 0 as valid interest rate)
+    if ($full_name && $student_id && $versity_email && $mobile && $duration && $description && ($interest_rate !== '')) {
         if ($borrower_id_to_save) {
             $sql = "INSERT INTO lender_lend (lender_id, borrower_id, full_name, student_id, versity_email, mobile, interest_rate, duration, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
@@ -261,6 +261,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <option value="monthly">Monthly</option>
                         <option value="yearly">Yearly</option>
                         <option value="end">At the end</option>
+                        <option value="no duration">No Duration</option>
                     </select>
                 </div>
             </div>
